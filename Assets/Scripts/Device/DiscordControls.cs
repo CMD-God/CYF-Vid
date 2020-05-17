@@ -59,7 +59,11 @@ public class DiscordControls {
             Timestamps = {
                 Start = (remaining ? 0 : rpTime),
 				End = (remaining ? rpTime : 0)
-            }
+            },
+			Assets = {
+				LargeImage = "cyf_logo",
+				LargeText = "Create Your Frisk"
+			}
         };
 
         activityManager.UpdateActivity(activity, (res) => {
