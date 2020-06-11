@@ -27,11 +27,12 @@ public class LuaSpriteShader {
         else if (shaderName == null)
             throw new CYFException("shader.Set: The second argument, the name of the shader to load, is nil.");
 
-        material = Material.Instantiate(ShaderRegistry.Get(bundleName, shaderName));
+        material = GameObject.Instantiate<Material>(ShaderRegistry.Get(bundleName, shaderName));
         if (mode == "camera") {
             CameraShader cs = gameObject.GetComponent<CameraShader>();
             cs.enabled = true;
             cs.material = material;
+            material.EnableKeyword("CYF_SHADER_IS_CAMERA");
         } else if (mode == "event")
             gameObject.GetComponent<SpriteRenderer>().material = material;
         else
@@ -51,6 +52,7 @@ public class LuaSpriteShader {
                 CameraShader cs = gameObject.GetComponent<CameraShader>();
                 cs.enabled = true;
                 cs.material = material;
+                material.EnableKeyword("CYF_SHADER_IS_CAMERA");
             } else if (mode == "event")
                 gameObject.GetComponent<SpriteRenderer>().material = material;
             else
@@ -114,6 +116,9 @@ public class LuaSpriteShader {
 
     private int IndexProperty(string name, bool get) {
         checkActive();
+        if (string.IsNullOrEmpty(name))
+            throw new CYFException("The first argument, the name of the property in the shader, is nil.");
+
         if (!material.HasProperty(name) && get)
             throw new CYFException("Shader has no property \"" + name + "\".");
 
@@ -123,6 +128,17 @@ public class LuaSpriteShader {
     }
 
     public bool HasProperty(string name) { return material.HasProperty(name); }
+
+
+
+    public void EnableKeyword(string key) {
+        checkActive();
+        material.EnableKeyword(key);
+    }
+    public void DisableKeyword(string key) {
+        checkActive();
+        material.DisableKeyword(key);
+    }
 
 
 
@@ -136,6 +152,7 @@ public class LuaSpriteShader {
         return DynValue.NewTable(output);
     }
     public void SetColor(string name, DynValue value) {
+        int property = IndexProperty(name, false);
         if (value.Type != DataType.Table || value.Table.Length < 3)
             throw new CYFException("shader.SetColor: The second argument, the color, needs to be a table with 3 or 4 numbers.");
 
@@ -143,7 +160,7 @@ public class LuaSpriteShader {
                                        (float)value.Table.Get(2).Number,
                                        (float)value.Table.Get(3).Number,
                                        value.Table.Length > 3 ? (float)value.Table.Get(4).Number : 1f);
-        material.SetColor(IndexProperty(name, false), v4output);
+        material.SetColor(property, v4output);
     }
 
 
@@ -163,6 +180,7 @@ public class LuaSpriteShader {
         return DynValue.NewTable(output);
     }
     public void SetColorArray(string name, DynValue value) {
+        int property = IndexProperty(name, false);
         if (value.Type != DataType.Table)
             throw new CYFException("shader.SetColorArray: The second argument, the table of colors, needs to be a table.");
 
@@ -178,7 +196,7 @@ public class LuaSpriteShader {
                                        item.Table.Length > 3 ? (float)item.Table.Get(4).Number : 1f);
             colorarray[i] = newColor;
         }
-        material.SetColorArray(IndexProperty(name, false), colorarray);
+        material.SetColorArray(property, colorarray);
     }
 
 
@@ -288,6 +306,7 @@ public class LuaSpriteShader {
         return output;
     }
     public void SetMatrixArray(string name, MatrixFourByFour[] value) {
+        int property = IndexProperty(name, false);
         if (value.Length < 4)
             throw new CYFException("shader.SetMatrixArray: The second argument, the table of matrices, needs to be a table with shader matrix objects.");
 
@@ -296,14 +315,20 @@ public class LuaSpriteShader {
         for (int i = 0; i < value.Length; i++)
             matrixArray[i] = value[i].self;
 
-        material.SetMatrixArray(IndexProperty(name, false), matrixArray);
+        material.SetMatrixArray(property, matrixArray);
     }
 
 
 
     public void SetTexture(string name, string sprite) {
+        int property = IndexProperty(name, false);
+        if (string.IsNullOrEmpty(sprite))
+            throw new CYFException("shader.SetTexture: The second argument, the texture, needs to be the name of an image in your Sprites folder.");
+
         Sprite spr = SpriteRegistry.Get(sprite);
-        material.SetTexture(IndexProperty(name, false), spr.texture);
+        if (spr == null)
+            throw new CYFException("The sprite Sprites/" + sprite + ".png doesn't exist.");
+        material.SetTexture(property, spr.texture);
     }
 
     public DynValue GetVector(string name) {
@@ -316,6 +341,7 @@ public class LuaSpriteShader {
         return DynValue.NewTable(output);
     }
     public void SetVector(string name, DynValue value) {
+        int property = IndexProperty(name, false);
         if (value.Type != DataType.Table || value.Table.Length < 4)
             throw new CYFException("shader.SetVector: The second argument, the vector, needs to be a table with 4 numbers.");
 
@@ -323,7 +349,7 @@ public class LuaSpriteShader {
                                        (float)value.Table.Get(2).Number,
                                        (float)value.Table.Get(3).Number,
                                        (float)value.Table.Get(4).Number);
-        material.SetVector(IndexProperty(name, false), v4output);
+        material.SetVector(property, v4output);
     }
 
 
@@ -343,6 +369,7 @@ public class LuaSpriteShader {
         return DynValue.NewTable(output);
     }
     public void SetVectorArray(string name, DynValue value) {
+        int property = IndexProperty(name, false);
         if (value.Type != DataType.Table)
             throw new CYFException("shader.SetVectorArray: The second argument, the table of vectors, needs to be a table.");
 
@@ -358,6 +385,6 @@ public class LuaSpriteShader {
                                         (float)item.Table.Get(4).Number);
             v4array[i] = newv4;
         }
-        material.SetVectorArray(IndexProperty(name, false), v4array);
+        material.SetVectorArray(property, v4array);
     }
 }

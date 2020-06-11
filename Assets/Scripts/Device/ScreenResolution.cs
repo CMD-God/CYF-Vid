@@ -53,8 +53,11 @@ public class ScreenResolution : MonoBehaviour {
 
         //Load BGCamera Prefab and have it be in every scene, from the moment CYF starts.
         //This is necessary so BGCamera will clear out old frames outside of the Main Camera's display rect.
-        GameObject BGCamera = Instantiate(Resources.Load<GameObject>("Prefabs/BGCamera"));
+        GameObject BGCamera = Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/BGCamera"));
         BGCamera.name = "BGCamera";
+        #if UNITY_EDITOR
+            BGCamera.GetComponent<Camera>().rect = NoBorderRect;
+        #endif
         GameObject.DontDestroyOnLoad(BGCamera);
 
         //If this is the user's first time EVER opening the engine, force 640x480 windowed

@@ -952,7 +952,7 @@ public class PlayerOverworld : MonoBehaviour {
                 NewMusicManager.DestroyChannel(str);
         MusicManager.src.Stop();
         GameObject go2 = new GameObject();
-        GameObject go = Instantiate(go2);
+        GameObject go = Instantiate<GameObject>(go2);
         Destroy(go2);
         go.name = "GameObject";
         Transform[] root = UnitaleUtil.GetFirstChildren(null, true);
@@ -998,6 +998,7 @@ public class PlayerOverworld : MonoBehaviour {
         if (callFrom == "Battle") {
             GameObject.Destroy(GameObject.Find("psContainer"));
             GameObject.Destroy(GameObject.Find("GameObject"));
+            GameObject.Find("Main Camera OW").GetComponent<CameraShader>().Awake();
             DiscordControls.ShowOWScene(SceneManager.GetActiveScene().name);
         }
 
@@ -1019,8 +1020,9 @@ public class PlayerOverworld : MonoBehaviour {
         instance.OnDisable();
         instance.OnEnable();
         if (callFrom == "Shop") {
-            GameObject.Find("Main Camera OW").GetComponent<EventManager>().enabled = true;
-            GameObject.Find("Main Camera OW").GetComponent<TransitionOverworld>().enabled = true;
+            GameObject maincamera = GameObject.Find("Main Camera OW");
+            maincamera.GetComponent<EventManager>().enabled = true;
+            maincamera.GetComponent<TransitionOverworld>().enabled = true;
         } else {
             bool restart = true;
             foreach (TPHandler tp in FindObjectsOfType<TPHandler>())
